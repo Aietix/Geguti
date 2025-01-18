@@ -130,31 +130,35 @@ func generateFileName(inputURL, outputDir string) (string, error) {
 }
 
 func captureScreenshot(ctx context.Context, inputURL, filePath string) error {
-	var buf []byte
+    var buf []byte
 
-	// Initialize chromedp context with a proper allocator
-	log.Println("Initializing browser context...")
-	allocatorCtx, cancelAllocator := chromedp.NewExecAllocator(ctx, chromedp.DefaultExecAllocatorOptions[:]...)
-	defer cancelAllocator()
+    // Configure browser with flags to ignore certificate errors
+    allocatorCtx, cancelAllocator := chromedp.NewExecAllocator(ctx, append(
+        chromedp.DefaultExecAllocatorOptions[:],
+        chromedp.Flag("ignore-certificate-errors", true),
+        chromedp.Flag("disable-web-security", true),
+    )...)
+    defer cancelAllocator()
 
-	browserCtx, cancelBrowser := chromedp.NewContext(allocatorCtx)
-	defer cancelBrowser()
+    // Create a browser context
+    browserCtx, cancelBrowser := chromedp.NewContext(allocatorCtx)
+    defer cancelBrowser()
 
-	// Run the browser automation tasks
-	log.Printf("Navigating to URL: %s", inputURL)
-	if err := chromedp.Run(browserCtx,
-		chromedp.Navigate(inputURL),
-		chromedp.WaitVisible("body", chromedp.ByQuery),
-		chromedp.FullScreenshot(&buf, 90),
-	); err != nil {
-		return fmt.Errorf("failed to take screenshot: %w", err)
-	}
+    // Run the browser automation tasks
+    log.Printf("Navigating to URL: %s", inputURL)
+    if err := chromedp.Run(browserCtx,
+        chromedp.Navigate(inputURL),
+        chromedp.WaitVisible("body", chromedp.ByQuery),
+        chromedp.FullScreenshot(&buf, 90),
+    ); err != nil {
+        return fmt.Errorf("failed to take screenshot: %w", err)
+    }
 
-	// Write the screenshot to the specified file
-	log.Printf("Saving screenshot to file: %s", filePath)
-	if err := os.WriteFile(filePath, buf, 0644); err != nil {
-		return fmt.Errorf("failed to save screenshot: %w", err)
-	}
+    // Write the screenshot to the specified file
+    log.Printf("Saving screenshot to file: %s", filePath)
+    if err := os.WriteFile(filePath, buf, 0644); err != nil {
+        return fmt.Errorf("failed to save screenshot: %w", err)
+    }
 
-	return nil
+    return nil
 }
