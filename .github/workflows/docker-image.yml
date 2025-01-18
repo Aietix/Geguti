@@ -3,10 +3,10 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - screenshot-service
+      - main
   pull_request:
     branches:
-      - screenshot-service
+      - main
 
 jobs:
   build:
