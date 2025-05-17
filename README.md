@@ -1,4 +1,4 @@
-# GoScreenShot
+# Geguti
 
 Geguti is a simple HTTP-based service written in Go that captures screenshots (currently in development :D ) of webpages using [chromedp](https://github.com/chromedp/chromedp). 
 It provides an API endpoint to take screenshots of any given URL and saves them locally.
