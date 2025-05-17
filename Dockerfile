@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Initialize a Go module and download dependencies
 COPY app/main.go .
-RUN go mod init screenshot-service && \
+RUN go mod init Geguti && \
     go get github.com/chromedp/chromedp && \
     go mod tidy
 
