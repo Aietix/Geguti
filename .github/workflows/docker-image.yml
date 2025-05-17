@@ -2,21 +2,50 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches:
-      - main
-      - dev
+    branches: [main]
   pull_request:
-    branches:
-      - main
-      - dev
+    branches: [main]
 
 jobs:
+  prepare-go-mod:
+    name: Generate go.mod and go.sum
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.20
+
+      - name: Initialize Go module
+        run: |
+          cd app
+          go mod init github.com/Aietix/Geguti
+          go get github.com/chromedp/chromedp
+          go mod tidy
+
+      - name: Upload go.mod and go.sum
+        uses: actions/upload-artifact@v4
+        with:
+          name: gomod
+          path: |
+            app/go.mod
+            app/go.sum
+
   build:
+    name: Build and Push Docker Image
+    needs: prepare-go-mod
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Download go.mod and go.sum
+        uses: actions/download-artifact@v4
+        with:
+          name: gomod
+          path: app
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -30,7 +59,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Docker Image (multi-platform)
+      - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
           context: .
